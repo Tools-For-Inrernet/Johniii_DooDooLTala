@@ -1,0 +1,27 @@
+{
+  "name": "johniii-doodoo-webvisor",
+  "version": "1.0.0",
+  "description": "Website HTML Static Meter with Webvisor - Session Recording and Replay",
+  "main": "src/server/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "node src/server/index.js",
+    "dev": "node --watch src/server/index.js",
+    "build:client": "node scripts/build-client.js",
+    "test": "node --test src/**/*.test.js"
+  },
+  "keywords": [
+    "webvisor",
+    "session-recording",
+    "analytics",
+    "automation",
+    "meter"
+  ],
+  "author": "Tools for Internet",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
