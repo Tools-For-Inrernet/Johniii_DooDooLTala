@@ -1,5 +1,6 @@
 /**
  * Webvisor - Main session recording module
+ * Auto-starts on DOM load, uses localStorage for persistence
  * @module Webvisor
  */
 
@@ -10,6 +11,65 @@ import { InputRecorder } from './recorder/InputRecorder.js';
 import { NavigationRecorder } from './recorder/NavigationRecorder.js';
 
 /**
+ * Storage keys
+ */
+const STORAGE_KEYS = {
+  SESSION_ID: 'wv_session_id',
+  VISITOR_ID: 'wv_visitor_id',
+  SAMPLED: 'wv_sampled',
+  FINGERPRINT: 'wv_fingerprint'
+};
+
+/**
+ * Cookie utility functions
+ */
+const Cookie = {
+  set(name, value, days = 365) {
+    const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+  },
+
+  get(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  },
+
+  delete(name) {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+  }
+};
+
+/**
+ * Storage utility - uses localStorage with cookie fallback
+ */
+const Storage = {
+  set(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      Cookie.set(key, value);
+    }
+  },
+
+  get(key) {
+    try {
+      return localStorage.getItem(key) || Cookie.get(key);
+    } catch (e) {
+      return Cookie.get(key);
+    }
+  },
+
+  remove(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      // ignore
+    }
+    Cookie.delete(key);
+  }
+};
+
+/**
  * Generates a unique session ID
  * @returns {string}
  */
@@ -17,6 +77,62 @@ function generateSessionId() {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 10);
   return `wv_${timestamp}_${random}`;
+}
+
+/**
+ * Generates a visitor fingerprint based on screen size and other factors
+ * @returns {string}
+ */
+function generateFingerprint() {
+  const data = [
+    screen.width,
+    screen.height,
+    screen.colorDepth,
+    navigator.language,
+    new Date().getTimezoneOffset(),
+    navigator.hardwareConcurrency || 0,
+    navigator.maxTouchPoints || 0
+  ].join('|');
+
+  // Simple hash
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    const char = data.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+
+  return 'fp_' + Math.abs(hash).toString(36);
+}
+
+/**
+ * Gets or creates a persistent visitor ID
+ * @returns {string}
+ */
+function getVisitorId() {
+  let visitorId = Storage.get(STORAGE_KEYS.VISITOR_ID);
+
+  if (!visitorId) {
+    visitorId = 'v_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
+    Storage.set(STORAGE_KEYS.VISITOR_ID, visitorId);
+  }
+
+  return visitorId;
+}
+
+/**
+ * Gets or creates a fingerprint
+ * @returns {string}
+ */
+function getFingerprint() {
+  let fingerprint = Storage.get(STORAGE_KEYS.FINGERPRINT);
+
+  if (!fingerprint) {
+    fingerprint = generateFingerprint();
+    Storage.set(STORAGE_KEYS.FINGERPRINT, fingerprint);
+  }
+
+  return fingerprint;
 }
 
 /**
@@ -31,6 +147,8 @@ export class Webvisor {
     this.config.privacy = { ...DEFAULT_CONFIG.privacy, ...config.privacy };
 
     this.sessionId = null;
+    this.visitorId = null;
+    this.fingerprint = null;
     this.events = [];
     this.isRecording = false;
     this.isSampled = false;
@@ -44,6 +162,23 @@ export class Webvisor {
     // Batch sending
     this.batchTimer = null;
     this.sendQueue = [];
+
+    // Auto-start if configured
+    if (this.config.autoStart !== false) {
+      this.autoStart();
+    }
+  }
+
+  /**
+   * Auto-starts recording when DOM is ready
+   */
+  autoStart() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.start());
+    } else {
+      // DOM already loaded
+      this.start();
+    }
   }
 
   /**
@@ -51,17 +186,14 @@ export class Webvisor {
    * @returns {boolean}
    */
   shouldSample() {
-    // Check localStorage for existing sample decision for this user
-    const storageKey = 'wv_sampled';
-    const storedDecision = localStorage.getItem(storageKey);
+    const storedDecision = Storage.get(STORAGE_KEYS.SAMPLED);
 
     if (storedDecision !== null) {
       return storedDecision === 'true';
     }
 
-    // Make new sampling decision
     const sampled = Math.random() * 100 < this.config.samplingRate;
-    localStorage.setItem(storageKey, sampled.toString());
+    Storage.set(STORAGE_KEYS.SAMPLED, sampled.toString());
     return sampled;
   }
 
@@ -79,6 +211,31 @@ export class Webvisor {
       }
       return pattern.test(url);
     });
+  }
+
+  /**
+   * Gets metadata about the current session
+   * @returns {object}
+   */
+  getMetadata() {
+    return {
+      url: window.location.href,
+      title: document.title,
+      referrer: document.referrer,
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      screen: {
+        width: screen.width,
+        height: screen.height
+      },
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight
+      },
+      fingerprint: this.fingerprint,
+      visitorId: this.visitorId
+    };
   }
 
   /**
@@ -107,6 +264,7 @@ export class Webvisor {
     if (this.sendQueue.length === 0) return;
 
     const batch = this.sendQueue.splice(0, this.config.batchSize);
+    const meta = this.getMetadata();
 
     try {
       const response = await fetch(this.config.endpoint, {
@@ -118,25 +276,16 @@ export class Webvisor {
           sessionId: this.sessionId,
           events: batch,
           timestamp: Date.now(),
-          meta: {
-            userAgent: navigator.userAgent,
-            language: navigator.language,
-            screen: {
-              width: screen.width,
-              height: screen.height
-            }
-          }
+          meta
         }),
         keepalive: true
       });
 
       if (!response.ok) {
-        // Re-queue events on failure
         this.sendQueue.unshift(...batch);
         console.warn('[Webvisor] Failed to send batch:', response.status);
       }
     } catch (error) {
-      // Re-queue events on error
       this.sendQueue.unshift(...batch);
       console.warn('[Webvisor] Error sending batch:', error.message);
     }
@@ -186,7 +335,17 @@ export class Webvisor {
       return false;
     }
 
-    this.sessionId = generateSessionId();
+    // Get or create session ID
+    this.sessionId = Storage.get(STORAGE_KEYS.SESSION_ID);
+    if (!this.sessionId) {
+      this.sessionId = generateSessionId();
+      Storage.set(STORAGE_KEYS.SESSION_ID, this.sessionId);
+    }
+
+    // Get visitor ID and fingerprint
+    this.visitorId = getVisitorId();
+    this.fingerprint = getFingerprint();
+
     this.isRecording = true;
 
     const eventHandler = this.handleEvent.bind(this);
@@ -230,7 +389,9 @@ export class Webvisor {
       data: {
         url: window.location.href,
         title: document.title,
-        referrer: document.referrer
+        referrer: document.referrer,
+        fingerprint: this.fingerprint,
+        visitorId: this.visitorId
       }
     });
 
@@ -247,7 +408,19 @@ export class Webvisor {
     // Start batch timer
     this.startBatchTimer();
 
-    console.log(`[Webvisor] Recording started - Session: ${this.sessionId}`);
+    // Send on page unload
+    window.addEventListener('beforeunload', () => {
+      this.sendBatch();
+    });
+
+    // Send on visibility change (mobile background)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        this.sendBatch();
+      }
+    });
+
+    console.log(`[Webvisor] Recording started - Session: ${this.sessionId}, Fingerprint: ${this.fingerprint}`);
     return true;
   }
 
@@ -279,7 +452,17 @@ export class Webvisor {
     this.stopBatchTimer();
     await this.sendBatch();
 
+    // Clear session ID for new session on next visit
+    Storage.remove(STORAGE_KEYS.SESSION_ID);
+
     console.log(`[Webvisor] Recording stopped - ${this.events.length} events recorded`);
+  }
+
+  /**
+   * Clears all stored data
+   */
+  clearStorage() {
+    Object.values(STORAGE_KEYS).forEach(key => Storage.remove(key));
   }
 
   /**
@@ -299,6 +482,22 @@ export class Webvisor {
   }
 
   /**
+   * Gets visitor fingerprint
+   * @returns {string|null}
+   */
+  getFingerprint() {
+    return this.fingerprint;
+  }
+
+  /**
+   * Gets visitor ID
+   * @returns {string|null}
+   */
+  getVisitorId() {
+    return this.visitorId;
+  }
+
+  /**
    * Checks if currently recording
    * @returns {boolean}
    */
@@ -307,9 +506,24 @@ export class Webvisor {
   }
 }
 
-// Export for browser use
+// Auto-initialize with default config if script has data-webvisor-auto attribute
 if (typeof window !== 'undefined') {
   window.Webvisor = Webvisor;
+
+  // Check for auto-init
+  const autoScript = document.currentScript || document.querySelector('script[data-webvisor-auto]');
+  if (autoScript?.hasAttribute('data-webvisor-auto')) {
+    const config = {};
+
+    if (autoScript.dataset.endpoint) {
+      config.endpoint = autoScript.dataset.endpoint;
+    }
+    if (autoScript.dataset.samplingRate) {
+      config.samplingRate = parseInt(autoScript.dataset.samplingRate, 10);
+    }
+
+    window.__webvisor = new Webvisor(config);
+  }
 }
 
 export default Webvisor;

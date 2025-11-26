@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webvisor Sample Page - All HTML Elements</title>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      margin: 0 0 0.5rem;
+    }
+
+    header p {
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    .recording-status {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--success);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .recording-dot {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-title .icon {
+      width: 24px;
+      height: 24px;
+      background: var(--primary);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.85rem;
+    }
+
+    .tracked {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px dashed var(--success);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: var(--success);
+      margin-left: auto;
+    }
+
+    /* Forms */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="search"],
+    input[type="date"],
+    input[type="time"],
+    input[type="datetime-local"],
+    input[type="month"],
+    input[type="week"],
+    input[type="color"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    input[type="file"] {
+      padding: 0.5rem;
+    }
+
+    /* Buttons */
+    .btn-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    button, .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #16a34a; }
+
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-warning:hover { background: #d97706; }
+
+    .btn-danger { background: var(--error); color: white; }
+    .btn-danger:hover { background: #dc2626; }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+    .btn-outline:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Images */
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+
+    .image-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .image-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .image-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      background: var(--bg);
+    }
+
+    .image-card figcaption {
+      padding: 0.5rem;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    /* Lists */
+    .list-demo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+
+    tr:hover td {
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    /* Links */
+    .link-demo {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Media */
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    video, audio {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    /* Accordion */
+    details {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+    }
+
+    summary {
+      padding: 1rem;
+      cursor: pointer;
+      font-weight: 500;
+      background: var(--bg);
+    }
+
+    details[open] summary {
+      border-bottom: 1px solid var(--border);
+    }
+
+    details > div {
+      padding: 1rem;
+    }
+
+    /* Progress */
+    progress {
+      width: 100%;
+      height: 20px;
+      border-radius: 10px;
+    }
+
+    /* Dialog */
+    dialog {
+      padding: 2rem;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      max-width: 500px;
+    }
+
+    dialog::backdrop {
+      background: rgba(0,0,0,0.5);
+    }
+
+    /* Scroll area */
+    .scroll-container {
+      height: 200px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .scroll-content {
+      height: 600px;
+      background: linear-gradient(180deg, var(--primary), var(--success));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+    }
+
+    /* Private section */
+    .private-section {
+      background: #fef3c7;
+      border-color: var(--warning);
+    }
+
+    .private-section .section-title {
+      color: #92400e;
+      border-color: var(--warning);
+    }
+
+    /* Canvas */
+    canvas {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: crosshair;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="recording-status">
+    <span class="recording-dot"></span>
+    Recording Active
+  </div>
+
+  <header>
+    <h1>Webvisor Sample Page</h1>
+    <p>Interact with all elements below - everything is being recorded!</p>
+  </header>
+
+  <div class="container">
+    <!-- Text Inputs -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">1</span>
+        Text Input Fields
+        <span class="tracked">Input Tracked</span>
+      </h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="text">Text Input</label>
+          <input type="text" id="text" placeholder="Type something...">
+        </div>
+        <div class="form-group">
+          <label for="email">Email Input</label>
+          <input type="email" id="email" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+          <label for="password">Password Input (Masked)</label>
+          <input type="password" id="password" placeholder="Your password">
+        </div>
+        <div class="form-group">
+          <label for="number">Number Input</label>
+          <input type="number" id="number" placeholder="123" min="0" max="100">
+        </div>
+        <div class="form-group">
+          <label for="tel">Phone Number</label>
+          <input type="tel" id="tel" placeholder="+1 (555) 123-4567">
+        </div>
+        <div class="form-group">
+          <label for="url">URL Input</label>
+          <input type="url" id="url" placeholder="https://example.com">
+        </div>
+        <div class="form-group">
+          <label for="search">Search Input</label>
+          <input type="search" id="search" placeholder="Search...">
+        </div>
+        <div class="form-group">
+          <label for="textarea">Textarea</label>
+          <textarea id="textarea" rows="3" placeholder="Write a longer message..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selection Inputs -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">2</span>
+        Selection Controls
+        <span class="tracked">Selection Tracked</span>
+      </h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="select">Dropdown Select</label>
+          <select id="select">
+            <option value="">Choose an option</option>
+            <option value="option1">Option 1</option>
+            <option value="option2">Option 2</option>
+            <option value="option3">Option 3</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="multiselect">Multi-Select</label>
+          <select id="multiselect" multiple size="4">
+            <option value="a">Apple</option>
+            <option value="b">Banana</option>
+            <option value="c">Cherry</option>
+            <option value="d">Date</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Checkboxes</label>
+          <div>
+            <label><input type="checkbox" name="check" value="1"> Option A</label><br>
+            <label><input type="checkbox" name="check" value="2"> Option B</label><br>
+            <label><input type="checkbox" name="check" value="3"> Option C</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Radio Buttons</label>
+          <div>
+            <label><input type="radio" name="radio" value="1"> Choice 1</label><br>
+            <label><input type="radio" name="radio" value="2"> Choice 2</label><br>
+            <label><input type="radio" name="radio" value="3"> Choice 3</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Special Inputs -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">3</span>
+        Special Input Types
+        <span class="tracked">Input Tracked</span>
+      </h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="date">Date Picker</label>
+          <input type="date" id="date">
+        </div>
+        <div class="form-group">
+          <label for="time">Time Picker</label>
+          <input type="time" id="time">
+        </div>
+        <div class="form-group">
+          <label for="datetime">Date & Time</label>
+          <input type="datetime-local" id="datetime">
+        </div>
+        <div class="form-group">
+          <label for="month">Month Picker</label>
+          <input type="month" id="month">
+        </div>
+        <div class="form-group">
+          <label for="week">Week Picker</label>
+          <input type="week" id="week">
+        </div>
+        <div class="form-group">
+          <label for="color">Color Picker</label>
+          <input type="color" id="color" value="#3b82f6">
+        </div>
+        <div class="form-group">
+          <label for="range">Range Slider: <span id="rangeValue">50</span></label>
+          <input type="range" id="range" min="0" max="100" value="50" oninput="document.getElementById('rangeValue').textContent = this.value">
+        </div>
+        <div class="form-group">
+          <label for="file">File Upload</label>
+          <input type="file" id="file">
+        </div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">4</span>
+        Buttons & Actions
+        <span class="tracked">Clicks Tracked</span>
+      </h2>
+      <div class="btn-grid">
+        <button class="btn-primary" onclick="showAlert('Primary clicked!')">Primary Button</button>
+        <button class="btn-success" onclick="showAlert('Success clicked!')">Success Button</button>
+        <button class="btn-warning" onclick="showAlert('Warning clicked!')">Warning Button</button>
+        <button class="btn-danger" onclick="showAlert('Danger clicked!')">Danger Button</button>
+        <button class="btn-outline" onclick="showAlert('Outline clicked!')">Outline Button</button>
+        <button disabled>Disabled Button</button>
+        <button class="btn-primary" onclick="document.getElementById('dialog').showModal()">Open Dialog</button>
+      </div>
+    </div>
+
+    <!-- Links -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">5</span>
+        Links & Navigation
+        <span class="tracked">Clicks Tracked</span>
+      </h2>
+      <div class="link-demo">
+        <a href="#section1">Internal Link 1</a>
+        <a href="#section2">Internal Link 2</a>
+        <a href="https://example.com" target="_blank" rel="noopener">External Link</a>
+        <a href="mailto:test@example.com">Email Link</a>
+        <a href="tel:+15551234567">Phone Link</a>
+        <a href="/monitor">Monitor Page</a>
+      </div>
+    </div>
+
+    <!-- Images -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">6</span>
+        Images & Media
+        <span class="tracked">Clicks Tracked</span>
+      </h2>
+      <div class="image-grid">
+        <figure class="image-card" onclick="showAlert('Image 1 clicked!')">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='120' fill='%233b82f6'%3E%3Crect width='200' height='120'/%3E%3Ctext x='50%25' y='50%25' fill='white' text-anchor='middle' dy='.3em'%3EImage 1%3C/text%3E%3C/svg%3E" alt="Sample Image 1">
+          <figcaption>Click me!</figcaption>
+        </figure>
+        <figure class="image-card" onclick="showAlert('Image 2 clicked!')">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='120' fill='%2322c55e'%3E%3Crect width='200' height='120'/%3E%3Ctext x='50%25' y='50%25' fill='white' text-anchor='middle' dy='.3em'%3EImage 2%3C/text%3E%3C/svg%3E" alt="Sample Image 2">
+          <figcaption>Click me!</figcaption>
+        </figure>
+        <figure class="image-card" onclick="showAlert('Image 3 clicked!')">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='120' fill='%23f59e0b'%3E%3Crect width='200' height='120'/%3E%3Ctext x='50%25' y='50%25' fill='white' text-anchor='middle' dy='.3em'%3EImage 3%3C/text%3E%3C/svg%3E" alt="Sample Image 3">
+          <figcaption>Click me!</figcaption>
+        </figure>
+        <figure class="image-card" onclick="showAlert('Image 4 clicked!')">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='120' fill='%23ef4444'%3E%3Crect width='200' height='120'/%3E%3Ctext x='50%25' y='50%25' fill='white' text-anchor='middle' dy='.3em'%3EImage 4%3C/text%3E%3C/svg%3E" alt="Sample Image 4">
+          <figcaption>Click me!</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">7</span>
+        Data Table
+        <span class="tracked">Clicks Tracked</span>
+      </h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>John Doe</td>
+            <td>john@example.com</td>
+            <td>Active</td>
+            <td><button class="btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Edit</button></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Jane Smith</td>
+            <td>jane@example.com</td>
+            <td>Pending</td>
+            <td><button class="btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Edit</button></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Bob Wilson</td>
+            <td>bob@example.com</td>
+            <td>Inactive</td>
+            <td><button class="btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.85rem;">Edit</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Lists -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">8</span>
+        Lists
+        <span class="tracked">DOM Tracked</span>
+      </h2>
+      <div class="list-demo">
+        <div>
+          <h4>Unordered List</h4>
+          <ul>
+            <li>Item One</li>
+            <li>Item Two</li>
+            <li>Item Three
+              <ul>
+                <li>Nested Item A</li>
+                <li>Nested Item B</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4>Ordered List</h4>
+          <ol>
+            <li>First Step</li>
+            <li>Second Step</li>
+            <li>Third Step</li>
+          </ol>
+        </div>
+        <div>
+          <h4>Definition List</h4>
+          <dl>
+            <dt>Term 1</dt>
+            <dd>Definition for term 1</dd>
+            <dt>Term 2</dt>
+            <dd>Definition for term 2</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordion -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">9</span>
+        Accordion / Details
+        <span class="tracked">Clicks Tracked</span>
+      </h2>
+      <details>
+        <summary>Section 1 - Click to expand</summary>
+        <div>This is the content of section 1. It contains some text that is hidden by default.</div>
+      </details>
+      <details>
+        <summary>Section 2 - Click to expand</summary>
+        <div>This is the content of section 2. More hidden content here!</div>
+      </details>
+      <details>
+        <summary>Section 3 - Click to expand</summary>
+        <div>This is the content of section 3. Even more hidden content!</div>
+      </details>
+    </div>
+
+    <!-- Progress -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">10</span>
+        Progress & Meters
+        <span class="tracked">DOM Tracked</span>
+      </h2>
+      <div class="form-group">
+        <label>Progress Bar (70%)</label>
+        <progress value="70" max="100"></progress>
+      </div>
+      <div class="form-group">
+        <label>Meter (Low: 25%)</label>
+        <meter value="0.25" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 100%; height: 20px;"></meter>
+      </div>
+      <div class="form-group">
+        <label>Meter (High: 85%)</label>
+        <meter value="0.85" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 100%; height: 20px;"></meter>
+      </div>
+    </div>
+
+    <!-- Scroll Area -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">11</span>
+        Scroll Area
+        <span class="tracked">Scroll Tracked</span>
+      </h2>
+      <div class="scroll-container">
+        <div class="scroll-content">
+          Scroll inside this container!<br>
+          The scroll position is being tracked.
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">12</span>
+        Canvas Drawing
+        <span class="tracked">Mouse Tracked</span>
+      </h2>
+      <canvas id="canvas" width="400" height="200"></canvas>
+      <p style="margin-top: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">Draw with your mouse!</p>
+    </div>
+
+    <!-- Private Section -->
+    <div class="section private-section" data-ym-disable>
+      <h2 class="section-title">
+        <span class="icon">!</span>
+        Private Section (NOT Recorded)
+        <span class="tracked" style="background: rgba(245, 158, 11, 0.2); color: #92400e;">Excluded</span>
+      </h2>
+      <p>This section has the <code>data-ym-disable</code> attribute. Interactions here are NOT recorded.</p>
+      <div class="form-group">
+        <label for="private-input">Private Input (Not Recorded)</label>
+        <input type="text" id="private-input" placeholder="This input is not tracked">
+      </div>
+      <button class="btn-warning">This click is not tracked</button>
+    </div>
+
+    <!-- Sensitive Data -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="icon">$</span>
+        Sensitive Fields (Auto-Masked)
+        <span class="tracked">Input Masked</span>
+      </h2>
+      <p style="margin-bottom: 1rem; color: var(--text-muted);">These fields are automatically detected and masked in recordings:</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="credit-card">Credit Card Number</label>
+          <input type="text" id="credit-card" name="credit_card" placeholder="1234 5678 9012 3456">
+        </div>
+        <div class="form-group">
+          <label for="cvv">CVV</label>
+          <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="4">
+        </div>
+        <div class="form-group">
+          <label for="ssn">Social Security Number</label>
+          <input type="text" id="ssn" name="ssn" placeholder="XXX-XX-XXXX">
+        </div>
+        <div class="form-group">
+          <label for="secret">Secret Token</label>
+          <input type="text" id="secret" name="secret_token" placeholder="sk_live_xxxx">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Webvisor Sample Page - All interactions are being recorded</p>
+    <p><a href="/monitor">View Monitor Dashboard</a> | <a href="/">Home</a></p>
+  </footer>
+
+  <!-- Dialog -->
+  <dialog id="dialog">
+    <h2>Modal Dialog</h2>
+    <p>This is a modal dialog. Interactions inside are tracked!</p>
+    <div class="form-group">
+      <label for="dialog-input">Dialog Input</label>
+      <input type="text" id="dialog-input" placeholder="Type in the dialog...">
+    </div>
+    <button class="btn-primary" onclick="document.getElementById('dialog').close()">Close Dialog</button>
+  </dialog>
+
+  <!-- Webvisor Script -->
+  <script type="module">
+    import { Webvisor } from './src/client/Webvisor.js';
+
+    // Initialize Webvisor with auto-start
+    const webvisor = new Webvisor({
+      endpoint: '/api/webvisor/events',
+      samplingRate: 100,
+      autoStart: true,
+      privacy: {
+        maskSensitiveInputs: true,
+        excludeAttribute: 'data-ym-disable'
+      }
+    });
+
+    // Expose for debugging
+    window.webvisor = webvisor;
+
+    // Update recording status
+    function updateStatus() {
+      const status = document.querySelector('.recording-status');
+      if (webvisor.isActive()) {
+        status.style.background = '#22c55e';
+        status.innerHTML = '<span class="recording-dot"></span> Recording Active';
+      } else {
+        status.style.background = '#64748b';
+        status.innerHTML = 'Not Recording';
+      }
+    }
+
+    // Check status after a short delay
+    setTimeout(updateStatus, 500);
+  </script>
+
+  <!-- Canvas Drawing Script -->
+  <script>
+    // Show alert function
+    function showAlert(message) {
+      alert(message);
+    }
+
+    // Canvas drawing
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+
+    canvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDrawing) return;
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      isDrawing = false;
+    });
+
+    canvas.addEventListener('mouseout', () => {
+      isDrawing = false;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webvisor Monitor - Session Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-hover: #334155;
+      --border: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Fira Code', monospace;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tab {
+      padding: 0.75rem 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
+    .tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 600;
+    }
+
+    .stat-value.success { color: var(--success); }
+    .stat-value.warning { color: var(--warning); }
+    .stat-value.primary { color: var(--primary); }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      background: var(--primary);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-sm {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .btn-danger {
+      background: var(--error);
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.875rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: rgba(0,0,0,0.2);
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .badge-success { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+    .badge-warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+    .badge-primary { background: rgba(59, 130, 246, 0.2); color: var(--primary); }
+
+    .fingerprint {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: var(--primary);
+    }
+
+    .ip-address {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+    }
+
+    .screen-size {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .time-ago {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .session-detail {
+      display: none;
+      padding: 1.25rem;
+      background: var(--bg);
+    }
+
+    .session-detail.active {
+      display: block;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .detail-item {
+      background: var(--surface);
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+      font-size: 0.95rem;
+      word-break: break-all;
+    }
+
+    .events-timeline {
+      max-height: 400px;
+      overflow-y: auto;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .event-item {
+      display: flex;
+      gap: 1rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+
+    .event-time {
+      color: var(--text-muted);
+      min-width: 100px;
+      font-family: monospace;
+    }
+
+    .event-type {
+      min-width: 120px;
+      font-weight: 500;
+    }
+
+    .event-type.click { color: var(--success); }
+    .event-type.input { color: var(--warning); }
+    .event-type.scroll { color: var(--primary); }
+    .event-type.mutation { color: #a78bfa; }
+
+    .event-data {
+      color: var(--text-muted);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+    }
+
+    .page-btn {
+      padding: 0.5rem 1rem;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .page-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>
+        <div class="logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="3"/>
+            <line x1="12" y1="2" x2="12" y2="6"/>
+            <line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="6" y2="12"/>
+            <line x1="18" y1="12" x2="22" y2="12"/>
+          </svg>
+        </div>
+        Webvisor Monitor
+      </h1>
+      <button class="btn" onclick="refreshData()">Refresh</button>
+    </header>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('sessions')">Sessions</button>
+      <button class="tab" onclick="showTab('visitors')">Visitors</button>
+    </div>
+
+    <div class="stats" id="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Sessions</div>
+        <div class="stat-value primary" id="totalSessions">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Unique Visitors</div>
+        <div class="stat-value success" id="totalVisitors">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Events</div>
+        <div class="stat-value warning" id="totalEvents">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Events/Session</div>
+        <div class="stat-value" id="avgEvents">-</div>
+      </div>
+    </div>
+
+    <div id="sessionsTab">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Recent Sessions</span>
+          <span class="time-ago" id="lastUpdate">-</span>
+        </div>
+        <div id="sessionsContent">
+          <div class="loading">
+            <div class="spinner"></div>
+            Loading sessions...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="visitorsTab" style="display: none;">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Unique Visitors</span>
+        </div>
+        <div id="visitorsContent">
+          <div class="loading">
+            <div class="spinner"></div>
+            Loading visitors...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="sessionDetailPanel" style="display: none;">
+      <div class="panel-header">
+        <span class="panel-title">Session Details</span>
+        <button class="btn btn-sm" onclick="closeDetail()">Close</button>
+      </div>
+      <div class="session-detail active" id="sessionDetail"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/api/webvisor';
+    let currentOffset = 0;
+    const limit = 20;
+
+    // Event type names
+    const EVENT_NAMES = {
+      0: 'DOM_SNAPSHOT',
+      1: 'DOM_MUTATION',
+      2: 'MOUSE_MOVE',
+      3: 'MOUSE_CLICK',
+      4: 'SCROLL',
+      5: 'INPUT',
+      6: 'RESIZE',
+      7: 'PAGE_LOAD',
+      8: 'PAGE_TRANSITION',
+      9: 'SESSION_START',
+      10: 'SESSION_END'
+    };
+
+    const EVENT_CLASSES = {
+      3: 'click',
+      5: 'input',
+      4: 'scroll',
+      1: 'mutation'
+    };
+
+    // Format time ago
+    function timeAgo(date) {
+      const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+
+      if (seconds < 60) return 'just now';
+      if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+      if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+      return Math.floor(seconds / 86400) + 'd ago';
+    }
+
+    // Format timestamp
+    function formatTime(timestamp) {
+      return new Date(timestamp).toLocaleTimeString();
+    }
+
+    // Show tab
+    function showTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.tab:nth-child(${tab === 'sessions' ? 1 : 2})`).classList.add('active');
+
+      document.getElementById('sessionsTab').style.display = tab === 'sessions' ? 'block' : 'none';
+      document.getElementById('visitorsTab').style.display = tab === 'visitors' ? 'block' : 'none';
+
+      if (tab === 'visitors') {
+        loadVisitors();
+      }
+    }
+
+    // Load sessions
+    async function loadSessions(offset = 0) {
+      try {
+        const response = await fetch(`${API_BASE}/sessions?limit=${limit}&offset=${offset}`);
+        const data = await response.json();
+
+        updateStats(data);
+        renderSessions(data);
+        currentOffset = offset;
+      } catch (error) {
+        console.error('Error loading sessions:', error);
+        document.getElementById('sessionsContent').innerHTML = `
+          <div class="empty-state">Failed to load sessions</div>
+        `;
+      }
+    }
+
+    // Update stats
+    function updateStats(data) {
+      document.getElementById('totalSessions').textContent = data.total || 0;
+      document.getElementById('lastUpdate').textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+      // Calculate total events
+      let totalEvents = 0;
+      if (data.sessions) {
+        data.sessions.forEach(s => totalEvents += s.eventCount || 0);
+      }
+      document.getElementById('totalEvents').textContent = totalEvents;
+
+      const avgEvents = data.total > 0 ? Math.round(totalEvents / data.sessions.length) : 0;
+      document.getElementById('avgEvents').textContent = avgEvents;
+    }
+
+    // Render sessions table
+    function renderSessions(data) {
+      if (!data.sessions || data.sessions.length === 0) {
+        document.getElementById('sessionsContent').innerHTML = `
+          <div class="empty-state">No sessions recorded yet</div>
+        `;
+        return;
+      }
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Session ID</th>
+              <th>Fingerprint</th>
+              <th>IP Address</th>
+              <th>Screen</th>
+              <th>Events</th>
+              <th>Visits</th>
+              <th>Last Activity</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      data.sessions.forEach(session => {
+        html += `
+          <tr>
+            <td>
+              <a href="#" onclick="viewSession('${session.sessionId}'); return false;" style="color: var(--primary); text-decoration: none;">
+                ${session.sessionId.substring(0, 16)}...
+              </a>
+            </td>
+            <td><span class="fingerprint">${session.fingerprint || '-'}</span></td>
+            <td><span class="ip-address">${session.ipAddress || '-'}</span></td>
+            <td><span class="screen-size">${session.screen?.width || '?'}x${session.screen?.height || '?'}</span></td>
+            <td><span class="badge badge-primary">${session.eventCount || 0}</span></td>
+            <td><span class="badge badge-success">${session.visitCount || 1}</span></td>
+            <td><span class="time-ago">${timeAgo(session.updatedAt)}</span></td>
+            <td>
+              <button class="btn btn-sm btn-danger" onclick="deleteSession('${session.sessionId}')">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `
+          </tbody>
+        </table>
+        <div class="pagination">
+          <button class="page-btn" onclick="loadSessions(${Math.max(0, currentOffset - limit)})" ${currentOffset === 0 ? 'disabled' : ''}>Previous</button>
+          <button class="page-btn" onclick="loadSessions(${currentOffset + limit})" ${currentOffset + limit >= data.total ? 'disabled' : ''}>Next</button>
+        </div>
+      `;
+
+      document.getElementById('sessionsContent').innerHTML = html;
+    }
+
+    // Load visitors
+    async function loadVisitors() {
+      try {
+        const response = await fetch(`${API_BASE}/visitors`);
+        const data = await response.json();
+
+        document.getElementById('totalVisitors').textContent = data.total || 0;
+        renderVisitors(data);
+      } catch (error) {
+        console.error('Error loading visitors:', error);
+        document.getElementById('visitorsContent').innerHTML = `
+          <div class="empty-state">Failed to load visitors</div>
+        `;
+      }
+    }
+
+    // Render visitors table
+    function renderVisitors(data) {
+      if (!data.visitors || data.visitors.length === 0) {
+        document.getElementById('visitorsContent').innerHTML = `
+          <div class="empty-state">No visitors recorded yet</div>
+        `;
+        return;
+      }
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Fingerprint</th>
+              <th>IP Address</th>
+              <th>Screen</th>
+              <th>Language</th>
+              <th>Timezone</th>
+              <th>Visits</th>
+              <th>First Seen</th>
+              <th>Last Seen</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      data.visitors.forEach(visitor => {
+        html += `
+          <tr>
+            <td><span class="fingerprint">${visitor.fingerprint}</span></td>
+            <td><span class="ip-address">${visitor.ipAddress || '-'}</span></td>
+            <td><span class="screen-size">${visitor.screen?.width || '?'}x${visitor.screen?.height || '?'}</span></td>
+            <td>${visitor.language || '-'}</td>
+            <td>${visitor.timezone || '-'}</td>
+            <td><span class="badge badge-success">${visitor.visitCount || 1}</span></td>
+            <td><span class="time-ago">${timeAgo(visitor.firstSeen)}</span></td>
+            <td><span class="time-ago">${timeAgo(visitor.lastSeen)}</span></td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table>`;
+      document.getElementById('visitorsContent').innerHTML = html;
+    }
+
+    // View session detail
+    async function viewSession(sessionId) {
+      try {
+        const response = await fetch(`${API_BASE}/sessions/${sessionId}`);
+        const session = await response.json();
+
+        if (session.error) {
+          alert('Session not found');
+          return;
+        }
+
+        renderSessionDetail(session);
+        document.getElementById('sessionDetailPanel').style.display = 'block';
+        document.getElementById('sessionDetailPanel').scrollIntoView({ behavior: 'smooth' });
+      } catch (error) {
+        console.error('Error loading session:', error);
+        alert('Failed to load session');
+      }
+    }
+
+    // Render session detail
+    function renderSessionDetail(session) {
+      let html = `
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-label">Session ID</div>
+            <div class="detail-value fingerprint">${session.sessionId}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Fingerprint</div>
+            <div class="detail-value fingerprint">${session.fingerprint || '-'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">IP Address</div>
+            <div class="detail-value ip-address">${session.ipAddress || '-'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Screen Size</div>
+            <div class="detail-value">${session.screen?.width || '?'} x ${session.screen?.height || '?'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Viewport Size</div>
+            <div class="detail-value">${session.viewport?.width || '?'} x ${session.viewport?.height || '?'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">URL</div>
+            <div class="detail-value">${session.url || '-'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Page Title</div>
+            <div class="detail-value">${session.title || '-'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Referrer</div>
+            <div class="detail-value">${session.referrer || 'Direct'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Total Events</div>
+            <div class="detail-value">${session.eventCount || session.events?.length || 0}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Visitor Info</div>
+            <div class="detail-value">${session.visitor?.visitCount || 1} visits since ${session.visitor?.firstSeen ? timeAgo(session.visitor.firstSeen) : 'unknown'}</div>
+          </div>
+        </div>
+
+        <h3 style="margin-bottom: 1rem; color: var(--text-muted);">Event Timeline (${session.events?.length || 0} events)</h3>
+        <div class="events-timeline">
+      `;
+
+      if (session.events && session.events.length > 0) {
+        // Filter out mouse move events for cleaner view
+        const filteredEvents = session.events.filter(e => e.type !== 2);
+
+        filteredEvents.forEach(event => {
+          const eventName = EVENT_NAMES[event.type] || `TYPE_${event.type}`;
+          const eventClass = EVENT_CLASSES[event.type] || '';
+          const eventData = event.data ? JSON.stringify(event.data).substring(0, 100) : '';
+
+          html += `
+            <div class="event-item">
+              <span class="event-time">${formatTime(event.timestamp)}</span>
+              <span class="event-type ${eventClass}">${eventName}</span>
+              <span class="event-data">${eventData}</span>
+            </div>
+          `;
+        });
+      } else {
+        html += '<div class="empty-state">No events recorded</div>';
+      }
+
+      html += '</div>';
+      document.getElementById('sessionDetail').innerHTML = html;
+    }
+
+    // Close detail panel
+    function closeDetail() {
+      document.getElementById('sessionDetailPanel').style.display = 'none';
+    }
+
+    // Delete session
+    async function deleteSession(sessionId) {
+      if (!confirm('Are you sure you want to delete this session?')) return;
+
+      try {
+        const response = await fetch(`${API_BASE}/sessions/${sessionId}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          loadSessions(currentOffset);
+        } else {
+          alert('Failed to delete session');
+        }
+      } catch (error) {
+        console.error('Error deleting session:', error);
+        alert('Failed to delete session');
+      }
+    }
+
+    // Refresh data
+    function refreshData() {
+      loadSessions(currentOffset);
+      loadVisitors();
+    }
+
+    // Initial load
+    loadSessions();
+    loadVisitors();
+
+    // Auto-refresh every 30 seconds
+    setInterval(refreshData, 30000);
+  </script>
+</body>
+</html>

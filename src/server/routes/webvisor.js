@@ -5,159 +5,138 @@
 
 /**
  * Creates webvisor route handlers
- * @param {import('../storage/SessionStore.js').SessionStore} sessionStore
+ * @param {import('../storage/PostgresStore.js').PostgresStore} store
  * @returns {object}
  */
-export function createWebvisorRoutes(sessionStore) {
+export function createWebvisorRoutes(store) {
   return {
     /**
      * POST /api/webvisor/events - Receive event batches
-     * @param {Request} req
-     * @returns {Response}
+     * @param {object} body
+     * @returns {Promise<{status: number, data: object}>}
      */
-    async postEvents(req) {
+    async postEvents(body) {
       try {
-        const body = await req.json();
-        const { sessionId, events, meta } = body;
+        const { sessionId, events, meta, clientIP } = body;
 
         if (!sessionId || !events || !Array.isArray(events)) {
-          return new Response(
-            JSON.stringify({ error: 'Invalid request body' }),
-            {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' }
-            }
-          );
+          return {
+            status: 400,
+            data: { error: 'Invalid request body' }
+          };
         }
 
-        await sessionStore.storeEvents(sessionId, events, meta);
+        await store.storeEvents(sessionId, events, meta, clientIP);
 
-        return new Response(
-          JSON.stringify({ success: true, eventsReceived: events.length }),
-          {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
+        return {
+          status: 200,
+          data: { success: true, eventsReceived: events.length }
+        };
       } catch (error) {
         console.error('[Webvisor API] Error storing events:', error);
-        return new Response(
-          JSON.stringify({ error: 'Internal server error' }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
+        return {
+          status: 500,
+          data: { error: 'Internal server error' }
+        };
       }
     },
 
     /**
      * GET /api/webvisor/sessions - List sessions
-     * @param {Request} req
-     * @returns {Response}
+     * @param {object} options
+     * @returns {Promise<{status: number, data: object}>}
      */
-    async listSessions(req) {
+    async listSessions(options = {}) {
       try {
-        const url = new URL(req.url);
-        const limit = parseInt(url.searchParams.get('limit') || '50', 10);
-        const offset = parseInt(url.searchParams.get('offset') || '0', 10);
-
-        const result = await sessionStore.listSessions({ limit, offset });
-
-        return new Response(
-          JSON.stringify(result),
-          {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
+        const result = await store.listSessions(options);
+        return {
+          status: 200,
+          data: result
+        };
       } catch (error) {
         console.error('[Webvisor API] Error listing sessions:', error);
-        return new Response(
-          JSON.stringify({ error: 'Internal server error' }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
+        return {
+          status: 500,
+          data: { error: 'Internal server error' }
+        };
       }
     },
 
     /**
      * GET /api/webvisor/sessions/:id - Get session details
-     * @param {Request} req
      * @param {string} sessionId
-     * @returns {Response}
+     * @returns {Promise<{status: number, data: object}>}
      */
-    async getSession(req, sessionId) {
+    async getSession(sessionId) {
       try {
-        const session = await sessionStore.getSession(sessionId);
+        const session = await store.getSession(sessionId);
 
         if (!session) {
-          return new Response(
-            JSON.stringify({ error: 'Session not found' }),
-            {
-              status: 404,
-              headers: { 'Content-Type': 'application/json' }
-            }
-          );
+          return {
+            status: 404,
+            data: { error: 'Session not found' }
+          };
         }
 
-        return new Response(
-          JSON.stringify(session),
-          {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
+        return {
+          status: 200,
+          data: session
+        };
       } catch (error) {
         console.error('[Webvisor API] Error getting session:', error);
-        return new Response(
-          JSON.stringify({ error: 'Internal server error' }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
+        return {
+          status: 500,
+          data: { error: 'Internal server error' }
+        };
       }
     },
 
     /**
      * DELETE /api/webvisor/sessions/:id - Delete session
-     * @param {Request} req
      * @param {string} sessionId
-     * @returns {Response}
+     * @returns {Promise<{status: number, data: object}>}
      */
-    async deleteSession(req, sessionId) {
+    async deleteSession(sessionId) {
       try {
-        const deleted = await sessionStore.deleteSession(sessionId);
+        const deleted = await store.deleteSession(sessionId);
 
         if (!deleted) {
-          return new Response(
-            JSON.stringify({ error: 'Session not found' }),
-            {
-              status: 404,
-              headers: { 'Content-Type': 'application/json' }
-            }
-          );
+          return {
+            status: 404,
+            data: { error: 'Session not found' }
+          };
         }
 
-        return new Response(
-          JSON.stringify({ success: true }),
-          {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
+        return {
+          status: 200,
+          data: { success: true }
+        };
       } catch (error) {
         console.error('[Webvisor API] Error deleting session:', error);
-        return new Response(
-          JSON.stringify({ error: 'Internal server error' }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
+        return {
+          status: 500,
+          data: { error: 'Internal server error' }
+        };
+      }
+    },
+
+    /**
+     * GET /api/webvisor/visitors - List unique visitors
+     * @returns {Promise<{status: number, data: object}>}
+     */
+    async listVisitors() {
+      try {
+        const result = await store.listVisitors();
+        return {
+          status: 200,
+          data: result
+        };
+      } catch (error) {
+        console.error('[Webvisor API] Error listing visitors:', error);
+        return {
+          status: 500,
+          data: { error: 'Internal server error' }
+        };
       }
     }
   };
